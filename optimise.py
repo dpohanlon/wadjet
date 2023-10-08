@@ -20,6 +20,9 @@ import networkx as nx
 
 def optimisePlacement(connected_pairs, sequential_groups):
 
+    if len(sequential_groups) == 0:
+        sequential_groups = [[0]]
+
     # Create a model.
     model = cp_model.CpModel()
 
@@ -69,6 +72,7 @@ def optimisePlacement(connected_pairs, sequential_groups):
         # print('Strip', i, 'has index', solver.Value(indices[i]))
     else:
         print("The problem does not have an optimal solution.")
+        exit(0)
 
     return [solver.Value(indices[i]) for i in range(num_strips)]
 

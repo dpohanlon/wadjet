@@ -69,16 +69,18 @@ class OpAmp(Component):
     def __init__(self, name, value=None, package_size=1):
         super().__init__(name, value)
 
+        self.package_size = package_size
+
         legs1 = ["-5V"]
         for i in range(1, (package_size // 2) + 1):
             legs1.extend(
-                [f"non_inverting_input_{i}", f"_inverting_input_{i}", f"output_{i}"]
+                [f"non_inverting_input_{i}", f"inverting_input_{i}", f"output_{i}"]
             )
 
         legs2 = []
         for i in range((package_size // 2) + 1, package_size + 1):
             legs2.extend(
-                [f"non_inverting_input_{i}", f"_inverting_input_{i}", f"output_{i}"]
+                [f"non_inverting_input_{i}", f"inverting_input_{i}", f"output_{i}"]
             )
         legs2.append("5V")
 
@@ -100,6 +102,8 @@ class OpAmp(Component):
 class SchmittTrigger(Component):
     def __init__(self, name, value=None, package_size=1):
         super().__init__(name, value)
+
+        self.package_size = package_size
 
         legs1 = ["GND"]
         for i in range(1, (package_size // 2) + 1):
