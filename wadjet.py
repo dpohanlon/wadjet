@@ -13,12 +13,15 @@ rcParams.update({"figure.autolayout": True})
 
 rcParams["figure.figsize"] = (16, 9)
 
+from collections import defaultdict
+
 import numpy as np
 
 from pprint import pprint
 
 from optimise import optimisePlacement, connectedComponentStrips
 from components import (
+    Jumper,
     Diode,
     OpAmp,
     Resistor,
@@ -135,7 +138,71 @@ def componentLegsToPlace(component_list):
 
     return non_ic_legs_to_place, ic_legs_to_place
 
+# def detect_ic_direct_connections(connections, component_list):
+#     # Prepare a set of all IC pins for efficient look-up
+#     # ic_pins = [component.unique_leg_names() for component in component_list if component.ic]
+#
+#     ic_pins = [f'U1_{x}' for x in range(1, 9)]
+#
+#     pprint(ic_pins)
+#
+#     # Detect direct IC connections
+#     direct_ic_connections = {key: [val for val in vals if val in ic_pins and key.split("_")[0] == val.split("_")[0]]
+#                              for key, vals in connections.items() if key in ic_pins}
+#
+#     # Filter out empty entries
+#     direct_ic_connections = {k: v for k, v in direct_ic_connections.items() if v}
+#
+#     # Update the main connections to exclude direct connections
+#     for key in direct_ic_connections:
+#         connections[key] = [val for val in connections[key] if val not in direct_ic_connections[key]]
+#
+#     # Remove keys that now have empty lists
+#     connections = {k: v for k, v in connections.items() if v}
+#
+#     return direct_ic_connections, connections
 
+def detect_direct_ic_connections(connections):
+    ic_direct_connections = defaultdict(set)
+
+    # Iterate through each connection entry
+    for _, pins in connections.items():
+        ic_pins = [pin for pin in pins if "U1_" in pin]
+
+        if len(ic_pins) > 1:
+            for i in range(len(ic_pins)):
+                for j in range(i+1, len(ic_pins)):
+                    ic_direct_connections[ic_pins[i]].add(ic_pins[j])
+                    ic_direct_connections[ic_pins[j]].add(ic_pins[i])
+
+    return dict(ic_direct_connections)
+
+def add_jumper_for_ic_connections(connections, component_list):
+    ic_direct_connections = detect_direct_ic_connections(connections)
+
+    # remove direct IC connections from the connections dictionary
+    for ic_pin, directly_connected in ic_direct_connections.items():
+        for junction, pins in connections.items():
+            if ic_pin in pins:
+                # This will remove the direct connections from the list of pins for each junction
+                pins = [pin for pin in pins if pin not in directly_connected]
+                connections[junction] = pins
+
+    # Now, add jumper components for these direct connections
+    jumper_count = 0
+    for ic_pin, directly_connected in ic_direct_connections.items():
+        for direct_connection in directly_connected:
+            jumper_name = f"jumper_{jumper_count}"
+            jumper = Jumper(name=jumper_name)
+            component_list.append(jumper)
+
+            # Connection for jumper
+            jumper_connections = [ic_pin, direct_connection]
+            connections[jumper_name] = jumper_connections
+
+            jumper_count += 1
+
+    return connections, component_list
 
 def generateBoard(component_list, connections):
     """
@@ -196,7 +263,50 @@ def generateBoard(component_list, connections):
             x += 1  # Increment x for each IC
         return board
 
+    def detect_jumper_required_ic_connections(connected_components, components):
+        jumper_required_connections = []
+
+        # Generate a list of all IC pins
+        ic_pins_list = []
+        for component in components:
+            if component.ic:
+                ic_pins_list.extend([pin for pin in component.unique_leg_names()[0]])
+                ic_pins_list.extend([pin for pin in component.unique_leg_names()[1]])
+
+        # For each connected component
+        for component in connected_components:
+            ic_pins_in_this_component = [pin for pin in component if pin in ic_pins_list]
+
+            # If multiple IC pins are in the same component, they are directly connected
+            if len(ic_pins_in_this_component) > 1:
+                for i in range(len(ic_pins_in_this_component) - 1):
+                    for j in range(i + 1, len(ic_pins_in_this_component)):
+                        jumper_required_connections.append((ic_pins_in_this_component[i], ic_pins_in_this_component[j]))
+                        # REMOVE THESE
+
+        return jumper_required_connections
+
+    # connections, component_list = add_jumper_for_ic_connections(connections, component_list)
+
     component_map = {c.name : c for c in component_list}
+
+    strips = stripsToPlace(connections, component_list)
+
+    jumpers = detect_jumper_required_ic_connections(strips, component_list)
+
+    if len(jumpers) > 0:
+
+        print(jumpers)
+
+        for pair in jumpers:
+
+            j = Jumper(f'jumper_{pair[0]}_{pair[1]}')
+            component_list.append(j)
+
+            if pair[0] in connections:
+                connections[pair[0]].append(f'jumper_{pair[0]}_{pair[1]}_start')
+            else:
+                connections[pair[0]] = [f'jumper_{pair[0]}_{pair[1]}_end']
 
     strips = stripsToPlace(connections, component_list)
 

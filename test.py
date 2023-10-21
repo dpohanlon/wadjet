@@ -3,6 +3,7 @@ from pprint import pprint
 from wadjet import generateBoard
 
 from components import (
+    Component,
     Diode,
     OpAmp,
     Resistor,
@@ -144,5 +145,63 @@ def testCommonEmitterAmp():
 
     board = generateBoard(component_list, connections)
 
+def testSquareWave():
+
+    class TimerIC(Component):
+        def __init__(self, name, value=None):
+            super().__init__(name, value)
+
+            self.package_size = 6
+
+            legs1 = [str(i) for i in range(1, 5)]
+            legs2 = [str(i) for i in range(5, 9)]
+
+            self.sequential_legs = [legs1, legs2]
+
+            self.legs = []
+            self.legs.extend(legs1)
+            self.legs.extend(legs2)
+
+        @property
+        def color(self):
+            return "yellow"
+
+        @property
+        def ic(self):
+            return True
+
+    timer_555 = TimerIC(name="U1")
+
+    print(timer_555.unique_leg_names())
+
+    R1 = Resistor(name="R1")
+    R2 = Resistor(name="R2")
+    C1 = Capacitor(name="C1")
+    C2 = Capacitor(name="C2")
+    Vcc = PowerSupply(name="Vcc", voltage_level="5V")
+    GND = PowerSupply(name="GND", voltage_level="GND")
+
+    component_list = [timer_555, R1, R2, C1, C2, Vcc, GND]
+
+    connections = {
+        # Power supply to 555 Timer
+        "Vcc_V+": ["U1_8", "U1_4", "R1_in", "C2_in"],
+        "GND": ["U1_1", "C1_out", "C2_out"],
+
+        # Setting the 555 Timer in astable mode
+        "U1_2": ["U1_6", "C1_in"],
+        "U1_7": ["R2_out", "R1_out"],
+        "R1_in": ["U1_7"],
+        "R2_in": ["U1_2"],
+
+        # Control voltage for Pin 5 (optional but recommended for stability)
+        "U1_5": ["C2_out"],
+
+        # U1_3 will be the output pin emitting the continuous square wave.
+    }
+
+
+    board = generateBoard(component_list, connections)
+
 if __name__ == '__main__':
-    testCommonEmitterAmp()
+    testSquareWave()
