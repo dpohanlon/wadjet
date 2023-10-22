@@ -1,6 +1,6 @@
 from pprint import pprint
 
-from wadjet.wadjet import generateBoard
+from wadjet.core import generateBoard
 
 from wadjet.components import (
     Component,

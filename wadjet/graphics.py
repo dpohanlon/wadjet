@@ -45,7 +45,8 @@ class Stripboard:
                 str(x + 1),
                 ha="center",
                 va="center",
-                fontsize=9,
+                fontsize=12,
+                fontweight="bold",
                 color="black",
             )
             self.ax.text(
@@ -54,7 +55,8 @@ class Stripboard:
                 str(x + 1),
                 ha="center",
                 va="center",
-                fontsize=9,
+                fontsize=12,
+                fontweight="bold",
                 color="black",
             )
 
@@ -65,7 +67,8 @@ class Stripboard:
                 string.ascii_uppercase[y],
                 ha="center",
                 va="center",
-                fontsize=9,
+                fontsize=12,
+                fontweight="bold",
                 color="black",
             )
             self.ax.text(
@@ -74,7 +77,8 @@ class Stripboard:
                 string.ascii_uppercase[y],
                 ha="center",
                 va="center",
-                fontsize=9,
+                fontsize=12,
+                fontweight="bold",
                 color="black",
             )
 
