@@ -19,8 +19,8 @@ import numpy as np
 
 from pprint import pprint
 
-from optimise import optimisePlacement, connectedComponentStrips
-from components import (
+from wadjet.optimise import optimisePlacement, connectedComponentStrips
+from wadjet.components import (
     Jumper,
     Diode,
     OpAmp,
@@ -30,7 +30,7 @@ from components import (
     PowerSupply,
     BJT,
 )
-from graphics import Stripboard
+from wadjet.graphics import Stripboard
 
 
 def sequentialPinGroups(components, strips):
@@ -149,31 +149,6 @@ def componentLegsToPlace(component_list):
     return non_ic_legs_to_place, ic_legs_to_place
 
 
-# def detect_ic_direct_connections(connections, component_list):
-#     # Prepare a set of all IC pins for efficient look-up
-#     # ic_pins = [component.unique_leg_names() for component in component_list if component.ic]
-#
-#     ic_pins = [f'U1_{x}' for x in range(1, 9)]
-#
-#     pprint(ic_pins)
-#
-#     # Detect direct IC connections
-#     direct_ic_connections = {key: [val for val in vals if val in ic_pins and key.split("_")[0] == val.split("_")[0]]
-#                              for key, vals in connections.items() if key in ic_pins}
-#
-#     # Filter out empty entries
-#     direct_ic_connections = {k: v for k, v in direct_ic_connections.items() if v}
-#
-#     # Update the main connections to exclude direct connections
-#     for key in direct_ic_connections:
-#         connections[key] = [val for val in connections[key] if val not in direct_ic_connections[key]]
-#
-#     # Remove keys that now have empty lists
-#     connections = {k: v for k, v in connections.items() if v}
-#
-#     return direct_ic_connections, connections
-
-
 def detect_direct_ic_connections(connections):
     ic_direct_connections = defaultdict(set)
 
@@ -218,7 +193,7 @@ def add_jumper_for_ic_connections(connections, component_list):
     return connections, component_list
 
 
-def generateBoard(component_list, connections, name = 'board'):
+def generateBoard(component_list, connections, name="board"):
     """
     Generates a board based on provided component_list and connections.
     """
@@ -353,7 +328,7 @@ def generateBoard(component_list, connections, name = 'board'):
     )
 
     plt.savefig(f"{name}.pdf")
-    plt.savefig(f"{name}.png", dpi = 300)
+    plt.savefig(f"{name}.png", dpi=300)
     plt.clf()
 
     return board

@@ -1,8 +1,8 @@
 from pprint import pprint
 
-from wadjet import generateBoard
+from wadjet.wadjet import generateBoard
 
-from components import (
+from wadjet.components import (
     Component,
     Diode,
     OpAmp,
