@@ -164,6 +164,7 @@ class PowerSupply(Component):
         elif self.voltage_level == "GND":
             return "black"
 
+
 class Jumper(Component):
     def __init__(self, name):
         super().__init__(name, 0)
@@ -171,6 +172,7 @@ class Jumper(Component):
 
         self.legs = ["start", "end"]
         self.sequential_legs = self.legs
+
 
 if __name__ == "__main__":
 

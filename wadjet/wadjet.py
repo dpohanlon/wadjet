@@ -41,8 +41,14 @@ def sequentialPinGroups(components, strips):
 
     # Create a dictionary mapping IC names to their pin orders
     ic_pin_order = {
-        c.name: {pin_name: idx for idx, pin_name in enumerate(c.unique_leg_names()[0] + c.unique_leg_names()[1])}
-        for c in components if c.ic
+        c.name: {
+            pin_name: idx
+            for idx, pin_name in enumerate(
+                c.unique_leg_names()[0] + c.unique_leg_names()[1]
+            )
+        }
+        for c in components
+        if c.ic
     }
 
     # Create a mapping of each IC to the strips its pins are connected to
@@ -51,7 +57,8 @@ def sequentialPinGroups(components, strips):
         ic_strip_order[ic] = [
             (strip_idx, pin_order[pin])
             for strip_idx, strip in enumerate(strips)
-            for pin in strip if pin in pin_order
+            for pin in strip
+            if pin in pin_order
         ]
 
     # Sort the strips for each IC by pin order and extract the strip indices
@@ -80,7 +87,9 @@ def stripsToPlace(connections, component_list):
         dummy_strips = []
         for component in component_list:
             if component.ic:
-                for leg1, leg2 in zip(component.unique_leg_names()[0], component.unique_leg_names()[1]):
+                for leg1, leg2 in zip(
+                    component.unique_leg_names()[0], component.unique_leg_names()[1]
+                ):
                     if leg1 not in pins and leg2 not in pins:
                         dummy_strips.append([leg1])
         return dummy_strips
@@ -105,13 +114,14 @@ def connectedStrips(strips):
 
     for s1, strip1 in enumerate(strips):
         names1 = extract_component_names(strip1)
-        for s2 in range(s1 + 1, len(strips)):  # Start from the next strip to avoid duplicates and self-comparisons
+        for s2 in range(
+            s1 + 1, len(strips)
+        ):  # Start from the next strip to avoid duplicates and self-comparisons
             names2 = extract_component_names(strips[s2])
             if any(name in names2 for name in names1):
                 connected_pairs.append((s1, s2))
 
     return connected_pairs
-
 
 
 def componentLegsToPlace(component_list):
@@ -138,6 +148,7 @@ def componentLegsToPlace(component_list):
 
     return non_ic_legs_to_place, ic_legs_to_place
 
+
 # def detect_ic_direct_connections(connections, component_list):
 #     # Prepare a set of all IC pins for efficient look-up
 #     # ic_pins = [component.unique_leg_names() for component in component_list if component.ic]
@@ -162,6 +173,7 @@ def componentLegsToPlace(component_list):
 #
 #     return direct_ic_connections, connections
 
+
 def detect_direct_ic_connections(connections):
     ic_direct_connections = defaultdict(set)
 
@@ -171,11 +183,12 @@ def detect_direct_ic_connections(connections):
 
         if len(ic_pins) > 1:
             for i in range(len(ic_pins)):
-                for j in range(i+1, len(ic_pins)):
+                for j in range(i + 1, len(ic_pins)):
                     ic_direct_connections[ic_pins[i]].add(ic_pins[j])
                     ic_direct_connections[ic_pins[j]].add(ic_pins[i])
 
     return dict(ic_direct_connections)
+
 
 def add_jumper_for_ic_connections(connections, component_list):
     ic_direct_connections = detect_direct_ic_connections(connections)
@@ -204,7 +217,8 @@ def add_jumper_for_ic_connections(connections, component_list):
 
     return connections, component_list
 
-def generateBoard(component_list, connections):
+
+def generateBoard(component_list, connections, name = 'board'):
     """
     Generates a board based on provided component_list and connections.
     """
@@ -242,7 +256,9 @@ def generateBoard(component_list, connections):
             x += 1
         return board, mask, x
 
-    def place_ic_components(board, ic_legs_to_place, legs_to_strips_map, component_map, start_x):
+    def place_ic_components(
+        board, ic_legs_to_place, legs_to_strips_map, component_map, start_x
+    ):
 
         """Place IC components on the board."""
 
@@ -275,20 +291,24 @@ def generateBoard(component_list, connections):
 
         # For each connected component
         for component in connected_components:
-            ic_pins_in_this_component = [pin for pin in component if pin in ic_pins_list]
+            ic_pins_in_this_component = [
+                pin for pin in component if pin in ic_pins_list
+            ]
 
             # If multiple IC pins are in the same component, they are directly connected
             if len(ic_pins_in_this_component) > 1:
                 for i in range(len(ic_pins_in_this_component) - 1):
                     for j in range(i + 1, len(ic_pins_in_this_component)):
-                        jumper_required_connections.append((ic_pins_in_this_component[i], ic_pins_in_this_component[j]))
+                        jumper_required_connections.append(
+                            (ic_pins_in_this_component[i], ic_pins_in_this_component[j])
+                        )
                         # REMOVE THESE
 
         return jumper_required_connections
 
     # connections, component_list = add_jumper_for_ic_connections(connections, component_list)
 
-    component_map = {c.name : c for c in component_list}
+    component_map = {c.name: c for c in component_list}
 
     strips = stripsToPlace(connections, component_list)
 
@@ -300,13 +320,13 @@ def generateBoard(component_list, connections):
 
         for pair in jumpers:
 
-            j = Jumper(f'jumper_{pair[0]}_{pair[1]}')
+            j = Jumper(f"jumper_{pair[0]}_{pair[1]}")
             component_list.append(j)
 
             if pair[0] in connections:
-                connections[pair[0]].append(f'jumper_{pair[0]}_{pair[1]}_start')
+                connections[pair[0]].append(f"jumper_{pair[0]}_{pair[1]}_start")
             else:
-                connections[pair[0]] = [f'jumper_{pair[0]}_{pair[1]}_end']
+                connections[pair[0]] = [f"jumper_{pair[0]}_{pair[1]}_end"]
 
     strips = stripsToPlace(connections, component_list)
 
@@ -318,21 +338,25 @@ def generateBoard(component_list, connections):
         connected_pairs=connected_pairs, sequential_groups=sequential_groups.values()
     )
 
-    board = Stripboard(10)
+    board = Stripboard(8)
 
     strips_ordered = order_strips_based_on_placements(placements, strips)
     legs_to_strips_map = map_legs_to_strips(strips_ordered)
     legs_to_place, ic_legs_to_place = componentLegsToPlace(component_list)
 
-    mask = np.zeros((10, 10))
-    board, mask, last_non_ic_x = place_non_ic_components(board, legs_to_place, legs_to_strips_map)
-    board = place_ic_components(board, ic_legs_to_place, legs_to_strips_map, component_map, last_non_ic_x)
+    mask = np.zeros((8, 8))
+    board, mask, last_non_ic_x = place_non_ic_components(
+        board, legs_to_place, legs_to_strips_map
+    )
+    board = place_ic_components(
+        board, ic_legs_to_place, legs_to_strips_map, component_map, last_non_ic_x
+    )
 
-    plt.savefig("board.pdf")
+    plt.savefig(f"{name}.pdf")
+    plt.savefig(f"{name}.png", dpi = 300)
     plt.clf()
 
     return board
-
 
 
 if __name__ == "__main__":
