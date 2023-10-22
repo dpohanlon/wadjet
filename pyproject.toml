@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "wadjet"
+version = "0.1.0"
+description = "Stripboard component placement optimisation"
+authors = ["Daniel O'Hanlon <dpohanlon@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+networkx = "^3.2"
+numpy = "^1.25"
+matplotlib = "^3.8.0"
+ortools = "^9.7.2996"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
