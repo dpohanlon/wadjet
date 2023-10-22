@@ -45,7 +45,7 @@ class Stripboard:
                 str(x + 1),
                 ha="center",
                 va="center",
-                fontsize=12,
+                fontsize=16,
                 fontweight="bold",
                 color="black",
             )
@@ -55,7 +55,7 @@ class Stripboard:
                 str(x + 1),
                 ha="center",
                 va="center",
-                fontsize=12,
+                fontsize=16,
                 fontweight="bold",
                 color="black",
             )
@@ -67,7 +67,7 @@ class Stripboard:
                 string.ascii_uppercase[y],
                 ha="center",
                 va="center",
-                fontsize=12,
+                fontsize=16,
                 fontweight="bold",
                 color="black",
             )
@@ -77,7 +77,7 @@ class Stripboard:
                 string.ascii_uppercase[y],
                 ha="center",
                 va="center",
-                fontsize=12,
+                fontsize=16,
                 fontweight="bold",
                 color="black",
             )
